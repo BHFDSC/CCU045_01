@@ -1,4 +1,4 @@
-# Specialist care for acute heart failure is associated with more favourable long-term outcomes: A prospective, nationwide, population-based cohort study before, during and after the COVID-19 pandemic
+# Specialist care for acute heart failure during and after the COVID-19 pandemic
 
 ## Project description
 
