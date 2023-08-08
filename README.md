@@ -1,32 +1,22 @@
-# BHF Data Science Centre research project template
-
-This is a template repository used by the BHF Data Science Centre team when creating new repositories for single-nation CVD-COVID-UK/COVID-IMPACT projects.
-
-# Project name
+# Specialist care for acute heart failure is associated with more favourable long-term outcomes: A prospective, nationwide, population-based cohort study before, during and after the COVID-19 pandemic
 
 ## Project description
 
-Description will be added here.
+The COVID pandemic disrupted the delivery of care for patients with heart failure (HF), leading to fewer hospitalisations and increased mortality. However, nationwide data on quality of care and long-term outcomes across the pandemic are scarce. 
+
+We used data from England to investigate secondary care management and outcomes for patients with HF before, during and after the pandemic.
 
 ## How to cite this work
 > Citation details to follow
 
 ## Contents
 
-* [View the analysis code used in NHS England's SDE for England](https://github.com/BHFDSC/CCU0XX_XX/tree/main/code)
-* [View the phenotyping algorithms and codelists used in NHS England's SDE for England](https://github.com/BHFDSC/CCU0XX_XX/tree/main/phenotypes)
-
-* [View the analysis code used in the Scottish National Safe Haven](https://github.com/BHFDSC/CCU0XX_XX/tree/main/code)
-* [View the phenotyping algorithms and codelists used in the Scottish National Safe Haven](https://github.com/BHFDSC/CCU0XX_XX/tree/main/phenotypes)
-
-* [View the analysis code used in the SAIL Databank](https://github.com/BHFDSC/CCU0XX_XX/tree/main/code)
-* [View the phenotyping algorithms and codelists used in the SAIL Databank](https://github.com/BHFDSC/CCU0XX_XX/tree/main/phenotypes)
+* [View the analysis code used in NHS England's SDE for England](https://github.com/BHFDSC/CCU045_01/tree/main/code)
+* [View the phenotyping algorithms and codelists used in NHS England's SDE for England](https://github.com/BHFDSC/CCU045_01/tree/main/phenotypes)
 
 ## Project approval
 
-This project has been approved by the CVD-COVID-UK / COVID-IMPACT Approvals & Oversight Board (project: CCUXXX_XX).
-
-This is a sub-project of [project CCU0XX](https://github.com/BHFDSC/CCU0XX) approved by the CVD-COVID-UK / COVID-IMPACT Approvals & Oversight Board (sub-project: CCU0XX_XX).
+This is a sub-project of [project CCU045](https://github.com/BHFDSC/CCU045) approved by the CVD-COVID-UK / COVID-IMPACT Approvals & Oversight Board (sub-project: CCU045_01).
 
 ## License
 
