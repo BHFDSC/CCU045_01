@@ -1,0 +1,237 @@
+rm(list=setdiff(ls(), "con"))
+
+datamerged=dbGetQuery(con, "Select * from dars_nic_391419_j3w9t_collab.ccu045_mixed_nicor_ac_230310")
+
+datamerged$v4_ADMIDATE <- as.Date(datamerged$v4_ADMIDATE)
+datamerged$ADMIDATE <- coalesce (datamerged$v4_ADMIDATE, datamerged$v5_ADMIDATE)
+datamerged$EPIEND <- coalesce (datamerged$v4_exit_date, datamerged$v5_exit_date)
+datamerged$DateofDeath <- coalesce (datamerged$v4_REG_DATE_OF_DEATH, datamerged$v5_REG_DATE_OF_DEATH)
+datamerged$archived_on <- coalesce (datamerged$v4_archived_on, datamerged$v5_archived_on)
+datamerged$lastFUP <-format(as.Date(datamerged$archived_on, format = "%Y-%M-%D"), "%Y-%M-%D")
+datamerged$lastFUP <- as.Date(datamerged$archived_on)
+datamerged$V4DOB <- parse_date_time(datamerged$v4_MYDOB, "%m-%y")
+datamerged$V5DOB <- parse_date_time(datamerged$v5_MYDOB, "%m-%y")
+datamerged$V5DOB_2 <- parse_date_time(datamerged$v5_MONTH_YEAR_OF_BIRTH, "%y-%m")
+datamerged$MYDOB <- coalesce (datamerged$V4DOB, datamerged$V5DOB_2, datamerged$V5DOB)
+datamerged$MYDOB <-replace(datamerged$MYDOB, datamerged$MYDOB=="1800-01-01", NA)
+datamerged$Year <- format(datamerged$ADMIDATE, format = "%Y")
+datamerged$inhospfup <- interval(datamerged$ADMIDATE, datamerged$EPIEND) %/% days(1) 
+datamerged$deathdate <- difftime(datamerged$DateofDeath, datamerged$ADMIDATE, units=c("weeks"))
+datamerged$longestfup<- difftime(datamerged$lastFUP, datamerged$ADMIDATE, units = c("weeks"))
+datamerged$deathdatenum <- as.numeric (datamerged$deathdate)
+datamerged$longestfupnum <- as.numeric (datamerged$longestfup)
+datamerged$fupKM <- with(datamerged, pmin(datamerged$deathdatenum, datamerged$longestfupnum, na.rm=TRUE)) 
+datamerged$fupKM<-replace(datamerged$fupKM, datamerged$fupKM<0, 0) 
+
+datamerged$Ageatadmission <- difftime(datamerged$ADMIDATE, datamerged$MYDOB, units=c("years"))
+
+datamerged$in_hospital_death <- with(datamerged, pmax(datamerged$v4_exit_type, datamerged$v5_exit_type, na.rm=TRUE)) 
+datamerged$death <- with(datamerged, pmax(datamerged$v4_final_death_flag, datamerged$v5_final_death_flag, na.rm=TRUE)) 
+datamerged$in_hospital_death<-replace(datamerged$in_hospital_death, (datamerged$death==0), 0) 
+
+  
+datamerged$CVcause <-recode(datamerged$ICDcodes, 
+                               "I0" = 1, 
+                               "I1" = 1,
+                               "I2" =1,
+                               "I3"=1,
+                               "I4"=1,
+                               "I5"=1,
+                               "I6" =1,
+                               "I7"=1,
+                               "I8"=1,
+                               "I9"=1)
+  table(datamerged$CVcause2, useNA="always")
+  
+datamerged$COVID <- recode(datamerged$Year, 
+                           "2016" = "NA",
+                           "2017" = "NA",
+                           "2018" = "0",
+                           "2019" = "0",
+                           "2020" = "1",
+                           "2021" = "2",
+                           "2022" = "2")
+
+datamerged$COVID <- as.numeric (datamerged$COVID)
+datamerged$COVID <- as.factor (datamerged$COVID)
+table (datamerged$COVID, useNA = "always")
+}
+
+datamerged$MaleSex <- recode(datamerged$sex, 
+                             "2. Female" = "0",
+                             "1. Male" = "1",
+                             "0. Not known" = "NA",
+                             "9. Not specified" = "NA")
+datamerged$MaleSex <- as.numeric(datamerged$MaleSex)
+table (datamerged$MaleSex)
+
+datamerged$Ethnicity<-replace(datamerged$Ethnicity, datamerged$Ethnicity=="9. Unknown", NA) 
+datamerged$Ethnicity <- recode(datamerged$Ethnicity,
+                               "0. White" = "1",
+                               "1. Mixed/Multiple ethnic groups" = "4", 
+                               "2. Asian/Asian British"	= "3", 
+                               "3. Black/ African/ Caribbean/ Black British" = "2",
+                               "4. Other ethnic group" = "4", 
+"9. Unknown" = NA)
+
+datamerged$NYHAclass <- recode(datamerged$BREATHLESSNESS,
+                               "1. No limitation of physical activity"	= "1",
+                               "1. No limitation of physical activity (NYHA I)" = "1", 
+                               "2. Slight limitation of ordinary physical activity" = "2", 
+                               "2. Slight limitation of ordinary physical activity (NYHA II)" = "2", 
+                               "3. Marked limitation of ordinary physical activity" = "3",
+                               "3. Marked limitation of ordinary physical activity (NYHA III)" = "3",
+                               "4. Symptoms at rest or minimal activity"	= "4",
+                               "4. Symptoms at rest or minimal activity (NYHA IV)" = "4",
+                               "9. Unknown" = "NA")
+
+datamerged$Oedema <- recode (datamerged$PERIPHERAL_OEDEMA,
+                             "0. No" = "0",
+                             "1. Mild" ="1", 
+                             "2. Moderate" = "2",	
+                             "3. Severe" ="3",	
+                             "9. Unknown" = "NA")
+
+datamerged$Ischaemic <- recode(datamerged$IHD,
+                               "0. No" = "0",	
+                               "1. Yes" = "1",
+                               "9. Unknown" = "NA")
+
+datamerged$PreviousValve <- recode(datamerged$Valve,
+                                   "0. No" = "0",	
+                                   "1. Yes" = "1",
+                                   "9. Unknown" = "NA")
+
+
+datamerged$Hypertension <- recode(datamerged$HTN,
+                                  "0. No" = "0",	
+                                  "1. Yes" = "1",
+                                  "9. Unknown" = "NA")
+
+datamerged$Diabetes <- recode(datamerged$Diabetes,
+                              "0. No" = "0",	
+                              "1. Yes" = "1",
+                              "9. Unknown" = "NA")
+
+
+datamerged$Asthma <- recode(datamerged$Asthma,
+                            "0. No" = "0",	
+                            "1. Yes" = "1",
+                            "9. Unknown" = "NA")
+
+datamerged$COPD <- recode(datamerged$COPD,
+                          "0. No" = "0",	
+                          "1. Yes" = "1",
+                          "9. Unknown" = "NA")
+
+datamerged$AsthmaOrCOPD <- ifelse((datamerged$Asthma=="1") | (datamerged$COPD=="1"), 1,0)
+
+
+datamerged$Smoking <- recode(datamerged$Smoking,
+                             "1. Yes" = "1",
+                             "2. Ex" = "0",
+                             "3. Never" = "0")
+
+
+datamerged$CKD <- datamerged %>% mutate(eGFR = ckd_epi(creat = ))
+
+
+  #Sodium
+datamerged$sodiumcat [datamerged$Sodium<125] <- 1
+datamerged$sodiumcat [datamerged$Sodium>=125 & datamerged$Sodium<135] <- 2
+datamerged$sodiumcat [datamerged$Sodium>=135 & datamerged$Sodium<145] <- 3
+datamerged$sodiumcat [datamerged$Sodium>145] <- 4
+
+  #Potassium
+datamerged$potassiumcat [datamerged$Potassium<3.5] <- 1
+datamerged$potassiumcat [between(datamerged$Potassium, 3.5, 4)] <- 2
+datamerged$potassiumcat [between(datamerged$Potassium, 4, 4.5)] <- 3
+datamerged$potassiumcat [between(datamerged$Potassium, 4.5, 5)] <- 4
+datamerged$potassiumcat [between(datamerged$Potassium, 5, 5.5)] <- 5
+datamerged$potassiumcat [between(datamerged$Potassium, 5.5, 6)] <- 6
+datamerged$potassiumcat [datamerged$Potassium>=6] <- 7
+
+
+  #Urea
+datamerged$Ureacat [datamerged$Urea<=7.8] <- 1
+datamerged$Ureacat [between(datamerged$Urea, 7.8, 12)] <- 2
+datamerged$Ureacat [between(datamerged$Urea, 12, 20)] <- 3
+datamerged$Ureacat [between(datamerged$Urea, 20, 33)] <- 4
+datamerged$Ureacat [datamerged$Urea>=33] <- 5
+
+
+  #SBP
+datamerged$SBPcat [datamerged$SBPAdm<105] <- 1
+datamerged$SBPcat [between(datamerged$SBPAdm, 105, 115)] <- 2
+datamerged$SBPcat [between(datamerged$SBPAdm, 115, 123)] <- 3
+datamerged$SBPcat [between(datamerged$SBPAdm, 123, 132)] <- 4
+datamerged$SBPcat [between(datamerged$SBPAdm, 132, 140)] <- 5
+datamerged$SBPcat [between(datamerged$SBPAdm, 140, 151)] <- 6
+datamerged$SBPcat [between(datamerged$SBPAdm, 151, 166)] <- 7
+datamerged$SBPcat [datamerged$SBPAdm>=166] <- 8
+
+
+datamergedonlyconfirmed <- filter(datamerged, datamerged$HFrEFvsOther>=1 & datamerged$selection==1, na.rm=TRUE)
+
+#select only the first admission for each patient
+datanodupl <- datamergedonlyconfirmed %>% group_by(patient_id) %>% filter(ADMIDATE == min(ADMIDATE, na.rm=TRUE))
+
+KMCOVID <- survfit(Surv(datamerged$fupKM, datamerged $death==1)~ datamerged $COVID, data= datamerged)
+
+ggsurvplot(KMCOVID, data=data3,  
+           risk.table = TRUE, 
+           pval = TRUE,
+           pval.coord=c(x=2, y=0.7),
+           title=" Overall Survival",
+           xlab="Follow-up (weeks)", 
+           ylab="Survival free from all cause mortality", 
+           break.time.by=8, xlim=c(0,56), ylim=c(0.3,1.0), 
+           legend.title = "",
+           legend.labs = c("Pre-COVID", "COVID", "Post-COVID"),
+           palette = c("chartreuse3", "firebrick2", "deepskyblue1"),
+           risk.table.height=0.25, font.legend=12,fontsize=4,
+           #cumevents=TRUE,
+           censor=FALSE, conf.int =FALSE) 
+
+#Competitive risks
+CompRiskAll <-cuminc(datared$fupKM, datared$causeofdeath, group=datared$COVID)
+names(CompRiskAll)
+
+global.p<-CompRiskAll$Tests
+global.p
+
+
+# regression analysis
+coxph(Surv(inhospfup, in_hosp_death)~ COVID, data=datamerged) 
+
+glm(in_hospital_death~ COVID,  family="binomial"(link='logit'),data=datamerged)
+exp(cbind(OR = coef(logisticregr_COVID), confint(logisticregr_COVID)))
+
+
+# Age adjusted analysis
+coxph(Surv(fupKM, death)~ COVID+ Ageatadmission, data=datamerged) 
+
+
+#multivariable analysis
+multivCOVID <- coxph(Surv(fupKM, death==1)~COVID+
+                       MaleSex+ 
+                       Ageatadmission +
+                       NYHAIII_IV +
+                       ModSevereOedema +
+                       Ischaemic+ 
+                       PreviousValve +
+                       Hypertension+
+                       Diabetes+
+                       AsthmaOrCOPD+
+                       ECGRhythm +
+                       IVConductiondelays +
+                       HFrEFvsOther +
+                       HeartRate+
+                       Hemoglobin +
+                       Creatinine +
+                       SBPcat +
+                       potassiumcat +
+                       sodiumcat + 
+                       Ureacat, 
+                     data=datamerged) %>%   add_global_p()
+
