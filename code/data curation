@@ -1,0 +1,106 @@
+# Databricks notebook source
+# MAGIC # NICOR NHFA v5+v4 with admission durationa added
+
+# COMMAND ----------
+
+import pyspark.sql.functions as F 
+import pyspark.sql.types as T
+import sys 
+from pyspark.sql.window import Window
+from pyspark.sql import Row
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import re
+from typing import List
+
+# COMMAND ----------
+
+db_raw = "dars_nic_391419_j3w9t"
+db_collab = "dars_nic_391419_j3w9t_collab"
+db_write = "dsa_391419_j3w9t_collab"
+nhfa_v4_arch_str = "nicor_hf_dars_nic_391419_j3w9t_archive"
+nhfa_v5_arch_str = "nicor_hf_v5_dars_nic_391419_j3w9t_archive"
+gdppr_arch_str = "gdppr_dars_nic_391419_j3w9t_archive"
+hes_apc_arch_str = "hes_apc_all_years_archive"
+deaths_table = "deaths_dars_nic_391419_j3w9t_archive"
+
+
+# COMMAND ----------
+
+# MAGIC %run /Shared/SHDS/Mehrdad/helper_library/basic_functions
+
+# COMMAND ----------
+
+# MAGIC %run /Shared/SHDS/Mehrdad/helper_library/date_management
+
+# COMMAND ----------
+
+df_v4 = spark.table(f'''{db_write}.ccu045_nhfa_v4updated_ac_230925''')
+display(df_v4)
+
+# COMMAND ----------
+
+df_v5 = spark.table(f'''{db_write}.ccu045_nhfa_v5updated_ac_230925''')
+display(df_v5)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Make the mixed dataframe ready 
+# MAGIC
+# MAGIC - Drop null IDs
+# MAGIC - Rename ID column to patid
+# MAGIC - Add 'isin_v4' and 'isin_v5' flags
+# MAGIC - Add 'v4_' and 'v5_' prefixes to the column names
+# MAGIC - join the tables on ID 
+
+# COMMAND ----------
+
+print(df_v4.filter(F.col("patient_id").isNull()).count())
+print(df_v5.filter(F.col("patient_id").isNull()).count())
+
+# COMMAND ----------
+
+df_v4.columns
+
+# COMMAND ----------
+
+df_v5.columns
+
+# COMMAND ----------
+
+# Add the isin flag
+df_v4 = df_v4.withColumn("isin_v4", F.lit(1))
+df_v5 = df_v5.withColumn("isin_v5", F.lit(1))
+
+# COMMAND ----------
+
+display(df_v4)
+display(df_v5)
+
+# COMMAND ----------
+
+df_v4_out = df_v4 
+for index, item in enumerate(list(df_v4_out.columns)):
+  if item not in ["patient_id", "isin_v4", "isin_v5"]:
+    df_v4_out = df_v4_out.withColumnRenamed(item, f'''v4_{item}''')
+display(df_v4_out)
+
+
+df_v5_out = df_v5
+for index, item in enumerate(list(df_v5_out.columns)):
+    if item not in ["patient_id","isin_v4", "isin_v5"]:
+      df_v5_out = df_v5_out.withColumnRenamed(item, f'''v5_{item}''')
+display(df_v5_out)
+
+
+df_join = df_v4_out.join(df_v5_out, on =["patient_id"], how="full")
+
+
+df_join = df_join.fillna(0, subset=["isin_v4", "isin_v5"])
+
+
+
+display(df_join.groupBy(["isin_v4", "isin_v5"]).count())
+df_join.write.saveAsTable(f'''{db_write}.ccu045_mixed_nicor_ac_230925''')
