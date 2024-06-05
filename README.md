@@ -6,8 +6,8 @@ The COVID pandemic disrupted the delivery of care for patients with heart failur
 
 We used data from England to investigate secondary care management and outcomes for patients with HF before, during and after the pandemic.
 
-## How to cite this work
-> Citation details to follow
+## Publications
+* **A nationwide, population-based study on specialized care for acute heart failure throughout the COVID-19 pandemic** (Cannata, A., Mizani, M.A., Bromage, D.I., Piper, S.E., Hardman, S.M.C., Sudlow, C., de Belder, M., Deanfield, J., Gardner, R.S., Clark, A.L., Cleland, J.G.F., McDonagh, T.A. and (2024), A nationwide, population-based study on specialized care for acute heart failure throughout the COVID-19 pandemic. Eur J Heart Fail. https://doi.org/10.1002/ejhf.3306)
 
 ## Contents
 
